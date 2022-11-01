@@ -1,4 +1,4 @@
-# Roby &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/iZemil/roby/blob/main/LICENSE) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/izemil/roby)
+# Roby &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/iZemil/roby/blob/master/LICENSE) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/izemil/roby)
 
 Tiny [NodeJS package](https://www.npmjs.com/package/roby) to check urls by name list and getting statuses.
 

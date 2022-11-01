@@ -26,5 +26,5 @@ yarn-error.log*
 
 src/dev.ts
 src/dev.*
-temp
+temp**
 roby.**
