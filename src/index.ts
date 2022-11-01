@@ -1,15 +1,17 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 import { delay } from './utils';
 
-const CONFIG_FILENAME = `roby.config.json`;
+const CONFIG_FILENAME = `roby.config.js`;
 const RESULT_FILENAME = `roby.result.json`;
-interface Config {
+interface Config<T = unknown> {
     baseUrl: string;
-    names: string[];
+    items: T[];
     delay: number;
+    urlHanlder: (baseUrl: string, item: T) => string;
+    resultHandler: (response: AxiosResponse | null, item: T) => any;
 }
 
 interface Result {
@@ -18,11 +20,14 @@ interface Result {
     status?: number;
 }
 
-const $NAME = '$NAME';
 const DEFAULT_CONFIG: Config = {
-    baseUrl: `https://www.npmjs.com/package/${$NAME}`,
+    baseUrl: `https://www.npmjs.com/package`,
+    resultHandler: () => {
+        return;
+    },
+    urlHanlder: (baseUrl, item) => `${baseUrl}/${item}`,
     delay: 500,
-    names: [],
+    items: ['foo', 'bar'],
 };
 
 export interface Options {
@@ -43,7 +48,12 @@ export const roby = async (options: Options): Promise<void> => {
 
     if (init) {
         try {
-            await fs.writeFile(CONFIG_FILENAME, JSON.stringify(DEFAULT_CONFIG));
+            await fs.writeFile(
+                CONFIG_FILENAME,
+                `
+                module.exports = ${JSON.stringify(DEFAULT_CONFIG)}
+            `
+            );
 
             console.log(`Config file was created.`);
         } catch (e) {
@@ -54,29 +64,35 @@ export const roby = async (options: Options): Promise<void> => {
 
     if (run) {
         try {
-            const config = await fs.readFile(CONFIG_FILENAME, 'utf8');
-            const configData: Config = JSON.parse(config);
+            // eslint-disable-next-line
+            const configData: Config = require(path.resolve(`./${CONFIG_FILENAME}`));
+            const { baseUrl, items, urlHanlder, resultHandler } = configData;
             const result: Result[] = [];
 
             // Validate configuration:
-            if (configData.names.length === 0) {
-                console.log(`Specify config names, eg: names: ["foo", "bar"]`);
+            if (items.length === 0) {
+                console.log(`Specify config items, eg: items: ["foo", "bar"]`);
                 return;
             }
 
-            if (!configData.baseUrl || !configData.baseUrl.includes($NAME)) {
-                console.log(`Specify config baseUrl with $NAME pattern, eg: https://example.com/users/$NAME`);
+            if (!baseUrl) {
+                console.log(`Specify config baseUrl`);
+                return;
+            }
+
+            if (!resultHandler) {
+                console.log(`Specify config resultHandler`);
                 return;
             }
 
             console.log('Roby is running...');
-            for (const name of configData.names) {
-                const url = configData.baseUrl.replace($NAME, name);
+            for (const item of configData.items) {
+                const url = urlHanlder(baseUrl, item);
 
                 let status = undefined;
+                let response: AxiosResponse | null = null;
                 try {
-                    const response = await axios.get(url);
-
+                    response = (await axios.get(url)) as AxiosResponse;
                     status = response.status;
                 } catch (e) {
                     if (isAxiosError(e) && e.response) {
@@ -84,12 +100,8 @@ export const roby = async (options: Options): Promise<void> => {
                     }
                 }
 
-                console.log(`${name} => ${status}`);
-                result.push({
-                    name,
-                    status,
-                    url,
-                });
+                console.log(`${status}: ${url}`);
+                result.push(resultHandler(response, item));
 
                 await delay(configData.delay);
             }
