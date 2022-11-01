@@ -21,12 +21,12 @@ interface Result {
 }
 
 const DEFAULT_CONFIG: Config = {
+    delay: 500,
     baseUrl: `https://www.npmjs.com/package`,
-    resultHandler: () => {
+    urlHanlder: (baseUrl, item) => `${baseUrl}/${item}`,
+    resultHandler: (response, item) => {
         return;
     },
-    urlHanlder: (baseUrl, item) => `${baseUrl}/${item}`,
-    delay: 500,
     items: ['foo', 'bar'],
 };
 
@@ -50,9 +50,12 @@ export const roby = async (options: Options): Promise<void> => {
         try {
             await fs.writeFile(
                 CONFIG_FILENAME,
-                `
-                module.exports = ${JSON.stringify(DEFAULT_CONFIG)}
-            `
+                `module.exports = ${JSON.stringify(DEFAULT_CONFIG, function (key, val) {
+                    if (typeof val === 'function') {
+                        return val + ''; // implicitly `toString` it
+                    }
+                    return val;
+                })}`
             );
 
             console.log(`Config file was created.`);
