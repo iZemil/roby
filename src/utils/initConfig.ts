@@ -1,11 +1,14 @@
+import chalk from 'chalk';
 import * as fs from 'fs/promises';
 
 import { getConfig } from '.';
 
 export const initConfig = async () => {
     try {
+        const config = getConfig();
+
         await fs.writeFile(
-            getConfig(),
+            config,
             `module.exports = {
     delay: 500,
     baseUrl: "https://www.npmjs.com/package",
@@ -21,7 +24,7 @@ export const initConfig = async () => {
 }`
         );
 
-        console.log(`Config file was created.`);
+        console.log(chalk.green(`Config file was created:\n> ${config}`));
     } catch (e) {
         console.error(e);
     }

@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
+import chalk from 'chalk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -18,28 +19,28 @@ function isAxiosError(error: any): error is AxiosError {
     return false;
 }
 
+const log = console.log;
+
 export const runConfig = async (options: Config = require(getConfig())): Promise<void> => {
     try {
         const { baseUrl, items, urlHanlder, resultHandler } = options;
         const result: Result[] = [];
 
-        // Validate configuration:
+        // TODO: Validate configuration utility
         if (items.length === 0) {
-            console.log(`Specify config items, eg: items: ["foo", "bar"]`);
+            log(`Specify config items, eg: items: ["foo", "bar"]`);
             return;
         }
-
         if (!baseUrl) {
-            console.log(`Specify config baseUrl`);
+            log(`Specify config baseUrl`);
             return;
         }
-
         if (!resultHandler) {
-            console.log(`Specify config resultHandler`);
+            log(`Specify config resultHandler`);
             return;
         }
 
-        console.log('Roby is running...');
+        log(chalk.blue('Roby is running...'));
         for (const item of options.items) {
             const url = urlHanlder(baseUrl, item);
 
@@ -47,6 +48,7 @@ export const runConfig = async (options: Config = require(getConfig())): Promise
             let response: AxiosResponse | null = null;
             try {
                 response = (await axios.get(url)) as AxiosResponse;
+
                 status = response.status;
             } catch (e) {
                 if (isAxiosError(e) && e.response) {
@@ -54,7 +56,7 @@ export const runConfig = async (options: Config = require(getConfig())): Promise
                 }
             }
 
-            console.log(`${status}: ${url}`);
+            log(`${status}: ${url}`);
             result.push(resultHandler(response, item));
 
             await delay(options.delay);
@@ -66,8 +68,7 @@ export const runConfig = async (options: Config = require(getConfig())): Promise
             console.error(e);
         }
 
-        console.log(`Finished, see: ${path.resolve(RESULT_FILENAME)}`);
-        return;
+        log(chalk.green(`\nFinished, see: ${path.resolve(RESULT_FILENAME)}`));
     } catch (e) {
         console.error(e);
     }
