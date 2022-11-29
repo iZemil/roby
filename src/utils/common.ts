@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 
 export function isDir(path: string): boolean {
     try {
@@ -12,3 +13,6 @@ export function isDir(path: string): boolean {
 }
 
 export const delay = async (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+export const getConfig = () => path.resolve('roby.config.js');
+export const RESULT_FILENAME = `roby.result.json`;

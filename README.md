@@ -6,7 +6,7 @@ Tiny [NodeJS package](https://www.npmjs.com/package/roby) to check urls by name 
 
 -   For cli usage install the package globally `npm i roby -g`
 
-## Examples
+## CLI Usage
 
 Cli full documentation:
 
@@ -25,3 +25,8 @@ Run:
 ```bash
 roby --run
 ```
+
+## Development
+
+-   main lib dev: `yarn dev` and work with dev.ts file
+-   cli dev: `yarn dev:cli <comand> [options]`

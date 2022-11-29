@@ -5,7 +5,7 @@
     "author": {
         "name": "zemil"
     },
-    "bin": "dist/cli.js",
+    "bin": "dist/cli/index.js",
     "private": false,
     "main": "dist/index.js",
     "repository": {
@@ -20,6 +20,7 @@
     "scripts": {
         "build": "tsc",
         "dev": "tsc-watch ./src/dev.ts --outDir ./dist/ --onSuccess \"node ./dist/dev.js\" --esModuleInterop",
+        "dev:cli": "tsc && node dist/cli/index.js",
         "test": "jest"
     },
     "dependencies": {
