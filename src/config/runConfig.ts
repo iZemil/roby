@@ -1,19 +1,12 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import chalk from 'chalk';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 
 import { delay } from '../utils';
 
-import { RESULT_FILENAME, getConfigPath } from './consts';
+import { getConfigPath, getResultPath } from './consts';
 import { TConfig } from './types';
 import { validateConfig } from './validateConfig';
-
-interface Result {
-    name: string;
-    url: string;
-    status?: number;
-}
 
 function isAxiosError(error: any): error is AxiosError {
     if ('response' in error) {
@@ -26,13 +19,17 @@ function isAxiosError(error: any): error is AxiosError {
 const log = console.log;
 
 export const runConfig = async (options: TConfig = require(getConfigPath())): Promise<void> => {
+    const resultPath = getResultPath();
+
     try {
         validateConfig(options);
 
         log(chalk.blue('Roby is running...'));
 
         const { baseUrl, items, query, handler } = options;
-        const result: Result[] = [];
+
+        const total = items.length;
+        let index = 0;
         for (const item of items) {
             const url = query(baseUrl, item);
 
@@ -48,19 +45,24 @@ export const runConfig = async (options: TConfig = require(getConfigPath())): Pr
                 }
             }
 
-            log(`${status}: ${url}`);
-            result.push(handler(response, item));
+            log(chalk.blue(`${index + 1}/${total}`), `GET ${url} (${status})`);
 
-            await delay(options.delay);
+            try {
+                const data = handler(response, item);
+                const isFirst = index === 0;
+                const isLast = index + 1 === total;
+
+                await fs.appendFile(resultPath, `${isFirst ? '[' : ''}${JSON.stringify(data)}${isLast ? ']' : ','}`);
+            } catch (error) {
+                console.error('handler error', error);
+            } finally {
+                index += 1;
+
+                await delay(options.delay);
+            }
         }
 
-        try {
-            await fs.writeFile(RESULT_FILENAME, JSON.stringify(result));
-        } catch (e) {
-            console.error(e);
-        }
-
-        log(chalk.green(`\nFinished:\n> ${path.resolve(RESULT_FILENAME)}`));
+        log(chalk.green(`Finished:\n> ${resultPath}`));
     } catch (e) {
         console.error(e);
     }
