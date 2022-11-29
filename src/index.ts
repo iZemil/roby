@@ -1,1 +1,1 @@
-export { runConfig as roby } from './utils/runConfig';
+export { runConfig as roby } from './config/runConfig';

@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
         "outDir": "dist",
-        "target": "es5",
         "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
@@ -9,6 +8,7 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
+        "target": "es6",
         "module": "CommonJS",
         "moduleResolution": "node",
         "resolveJsonModule": true,
@@ -18,5 +18,5 @@
         "strictNullChecks": true
     },
     "include": ["src"],
-    "exclude": ["node_modules", "src/__test__/**/*", "src/dev/**/*", "src/dev.ts"]
+    "exclude": ["node_modules", "tmp", "src/dev.ts"]
 }

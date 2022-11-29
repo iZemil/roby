@@ -1,8 +1,8 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { initConfig } from '../utils/initConfig';
-import { runConfig } from '../utils/runConfig';
+import { initConfig } from '../config/initConfig';
+import { runConfig } from '../config/runConfig';
 
 /**
  * @docs https://yargs.js.org/docs

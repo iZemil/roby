@@ -3,7 +3,11 @@ import chalk from 'chalk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { Config, RESULT_FILENAME, delay, getConfig } from './';
+import { delay } from '../utils';
+
+import { RESULT_FILENAME, getConfigPath } from './consts';
+import { TConfig } from './types';
+import { validateConfig } from './validateConfig';
 
 interface Result {
     name: string;
@@ -21,28 +25,16 @@ function isAxiosError(error: any): error is AxiosError {
 
 const log = console.log;
 
-export const runConfig = async (options: Config = require(getConfig())): Promise<void> => {
+export const runConfig = async (options: TConfig = require(getConfigPath())): Promise<void> => {
     try {
-        const { baseUrl, items, urlHanlder, resultHandler } = options;
-        const result: Result[] = [];
-
-        // TODO: Validate configuration utility
-        if (items.length === 0) {
-            log(`Specify config items, eg: items: ["foo", "bar"]`);
-            return;
-        }
-        if (!baseUrl) {
-            log(`Specify config baseUrl`);
-            return;
-        }
-        if (!resultHandler) {
-            log(`Specify config resultHandler`);
-            return;
-        }
+        validateConfig(options);
 
         log(chalk.blue('Roby is running...'));
-        for (const item of options.items) {
-            const url = urlHanlder(baseUrl, item);
+
+        const { baseUrl, items, query, handler } = options;
+        const result: Result[] = [];
+        for (const item of items) {
+            const url = query(baseUrl, item);
 
             let status = undefined;
             let response: AxiosResponse | null = null;
@@ -57,7 +49,7 @@ export const runConfig = async (options: Config = require(getConfig())): Promise
             }
 
             log(`${status}: ${url}`);
-            result.push(resultHandler(response, item));
+            result.push(handler(response, item));
 
             await delay(options.delay);
         }
@@ -68,7 +60,7 @@ export const runConfig = async (options: Config = require(getConfig())): Promise
             console.error(e);
         }
 
-        log(chalk.green(`\nFinished, see: ${path.resolve(RESULT_FILENAME)}`));
+        log(chalk.green(`\nFinished:\n> ${path.resolve(RESULT_FILENAME)}`));
     } catch (e) {
         console.error(e);
     }
