@@ -19,7 +19,7 @@
     "version": "0.0.1",
     "scripts": {
         "build": "tsc",
-        "dev": "tsc-watch ./src/dev.ts --outDir ./src/dev --onSuccess \"node ./src/dev/dev.js\" --esModuleInterop",
+        "dev": "tsc-watch ./src/dev.ts --outDir ./dist/ --onSuccess \"node ./dist/dev.js\" --esModuleInterop",
         "test": "jest"
     },
     "dependencies": {
